@@ -1,0 +1,862 @@
+<html lang="en">
+
+<head>
+  <Script>
+    const version = 'V_01 (H 20260617)';
+    document.documentElement.style.setProperty('--version', `"${version}"`);
+  </Script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Testing</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
+  <link href="virtubox://script?slug=speedlabs-css&mimetype=text/css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div class="modal fade" id="delete_confirmModal" aria-hidden="true" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modal-title"></h5>
+        </div>
+        <div class="modal-body" id="modal_body">
+          Are you sure you want to delete this OMR image?
+        </div>
+        <div id="modal-footer">
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmBtn"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="speedlabs_api_loading_bar hide" id="speedlabs_api_loading_bar">
+    <div class="spinner-border speedlabs_api_loading_bar_spinner" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div>Processing...</div>
+  </div>
+
+  <!-- OMR Preview Model -->
+  <div class="modal fade " id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered preview-modal">
+      <div class="modal-content border-0">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            OMR Preview
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center p-2">
+          <img id="previewModalImage" class="img-fluid rounded shadow" src="" alt="Preview">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="speedlabs_footer d-flex flex-column align-items-center justify-content-around w-100">
+    <!-- Footer Buttons -->
+    <div class="footer_icon profile_btn" onclick="show_user_profile(this)"
+      style="background-image: url('https://static.virtubox.io/catalog/file/20260122-060156-35oj-user_profile.png');">
+    </div>
+    <div class="footer_icon course_progress_btn" onclick="show_course_progress(this)"
+      style="background-image: url('https://static.virtubox.io/catalog/file/20260122-060157-opsn-course_progress.png');">
+    </div>
+    <div class="footer_icon student_performance_btn" onclick="show_student_performance(this)"
+      style="background-image: url('https://static.virtubox.io/catalog/file/20260122-060158-3fah-stud_perf.png');">
+    </div>
+    <div class="footer_icon test_list_btn" onclick="show_scan_to_evaluate(this)"
+      style="background-image: url('https://static.virtubox.io/catalog/file/20260122-060159-bros-scan_to_evaluate.png');">
+    </div>
+    <!-- <div class="footer_icon" onclick="show_more_services(this)"
+        style="background-image: url('https://static.virtubox.io/catalog/file/20260122-060200-nt8b-view_more.png');">
+      </div> -->
+  </div>
+
+  <div class="speedlabs_body">
+    <div class="speedalbs_body_slide slide_1" id="slide-1"> <!-- Home Slide 1-->
+      <button class="user_profile_validate login_btn px-4 py-1 float-end me-4 mt-3" onclick="choose_opt_login()">
+        <img src="https://static.virtubox.io/catalog/file/20260122-062129-duri-login_icon.png" alt=""
+          style="height: 3.7vh; margin-right: 0.5vw;"> Login
+      </button>
+    </div>
+    <div class="speedalbs_body_slide slide_2"> <!-- Login options-->
+      <button class="user_profile_validate px-4 py-1 float-end me-4 mt-3" onclick="change_slide('slide_2', 'slide_1')">
+        <img src="https://static.virtubox.io/catalog/file/20260122-062129-duri-login_icon.png" alt=""
+          style="height: 3.7vh; margin-right: 0.5vw;">
+        Back
+      </button>
+      <div class="choose_login_opt d-flex flex-start">
+        <div class="login_opt_btn py-1 mx-2" onclick="selectRFIDLogIn()">RFID</div>
+        <div class="login_opt_btn py-1 mx-2" onclick="selectQRLogIn()">QR Code</div>
+      </div>
+    </div>
+    <div class="speedalbs_body_slide slide_3"> <!-- Login by RFID-->
+      <button class="user_profile_validate px-4 py-1 float-end me-4 mt-3" onclick="change_slide('slide_3', 'slide_2')">
+        <img src="https://static.virtubox.io/catalog/file/20260122-062129-duri-login_icon.png" alt=""
+          style="height: 3.7vh; margin-right: 0.5vw;">
+        Back
+      </button>
+    </div>
+    <div class="speedalbs_body_slide slide_4"> <!-- Login by QR Code-->
+      <button class="user_profile_validate px-4 py-1 float-end me-4 mt-3" onclick="change_slide('slide_4', 'slide_2')">
+        <img src="https://static.virtubox.io/catalog/file/20260122-062129-duri-login_icon.png" alt=""
+          style="height: 3.7vh; margin-right: 0.5vw;">
+        Back
+      </button>
+    </div>
+    <div class="speedalbs_body_slide slide_5">
+      <div class="user_profile">
+        <div class="user_profile_sec_1 " style="height: 12%;">
+          <button class="user_profile_validate login_btn px-4 py-1 float-end me-4 mt-3" onclick="openLogoutModal()">
+            <img src="https://static.virtubox.io/catalog/file/20260122-062129-duri-login_icon.png" alt=""
+              style="height: 3.7vh; margin-right: 0.5vw;"> Logout
+          </button>
+          <div class="user_profile_sec_1_child ps-4">
+            <h3 id="UserName" class="pb-0 pt-3 mb-0 user_name" style="font-size: 3vh; font-weight: 600;">-- --</h3>
+            <span id="user_per_detail">-- --</span>
+          </div>
+        </div>
+        <div class="user_profile_sec_2 ps-0 mt-2" style="height: 15%;">
+          <div class="row p-2" style="align-items: center;">
+            <div class="col-1 ms-2 text-center">
+              <img class="slide_image_Containers mb-1" id="user_gender_icon" src="" alt="" style="height: 7vh;">
+              <div id="user_gender">Male</div>
+            </div>
+            <div class="col-1 text-center px-0">
+              <div class="vr p-0" style="height: 10vh; border: 0px solid;"></div>
+            </div>
+            <div class="col-1 text-center">
+              <img class="slide_image_Containers mb-1"
+                src="https://static.virtubox.io/catalog/file/20260320-052140-kuxo-city.png" alt="" style="height: 7vh;">
+              <div id="user_city"></div>
+            </div>
+            <div class="col-1 text-center px-0">
+              <div class="vr p-0" style="height: 10vh; border: 0px solid;"></div>
+            </div>
+            <div class="col-1 text-center">
+              <img class="slide_image_Containers mb-1"
+                src="https://static.virtubox.io/catalog/file/20260320-052142-rmn6-birthdate.png" alt=""
+                style="height: 7vh;">
+              <div id="user_DOB"></div>
+            </div>
+            <div class="col-1 text-center"></div>
+          </div>
+        </div>
+        <div class="user_profile_batch_info;">
+          <h4 class="ms-2 ps-3 pt-4 pb-0">BATCHES</h4>
+          <div class="m-3 mt-1 px-3 py-3 user-batches" id="user_batches">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="speedalbs_body_slide slide_9">
+      <div class="user_profile course_perf_main">
+        <div class="mx-3 pt-4 px-2 pb-1 d-flex align-items-center ">
+          <i class="bi bi-person-fill me-2" style="font-size:3.6vh;"></i>
+          <h6 class="user_name mb-0 fw-semibold text-dark" style="font-size:3.2vh;">-- --</h6>
+        </div>
+        <div class="row mt-4 mx-2">
+          <div class="col-8 pe-2" style="overflow: auto;">
+            <div class=" batch_select_sec p-3 pb-0 d-flex flex-column course-left-panel" id="course-progress">
+              <div class="flex-grow-1 overflow-auto" id="course_progress_cards">
+              </div>
+            </div>
+          </div>
+          <div class="col-4 ps-2">
+            <div class="selection-containers bg-light rounded-5 p-4 mb-2" style="border: 1px solid #dfdfdf;">
+              <h5 class="fw-semibold mb-3">Custom Date Range</h5>
+              <div class="row">
+                <div class="col-4 pe-1">
+                  <label class="form-label small mb-1">From</label>
+                  <input type="date" class="form-control form-control-sm" id="course_progress_from_date">
+                </div>
+                <div class="col-4 px-1">
+                  <label class="form-label small mb-1">
+                    To
+                  </label>
+                  <input type="date" class="form-control form-control-sm" id="course_progress_to_date"
+                    onchange="showCourseProgressAppyBtn()">
+                </div>
+                <div class="col-3 ps-1 d-flex align-items-end">
+                  <div class="btn btn-sm w-100 text-white fw-semibold apply-btn" id="course_progress_apply_btn"
+                    onclick="validateInfo('course_progress')"> APPLY</div>
+                </div>
+              </div>
+            </div>
+            <div class="selection-containers bg-light rounded-5 p-4 mb-2" id="rangeSelector"
+              style="border: 1px solid #dfdfdf;">
+              <h6 class="fw-semibold mb-3">Present Date Range</h6>
+              <div class="row text-center">
+                <div class="col-4 p-1">
+                  <div class="range-option" onclick="SelectedRange('yesterday', this)">Yesterday</div>
+                </div>
+                <div class="col-4 p-1">
+                  <div class="range-option" onclick="SelectedRange('week', this)">Thisweek</div>
+                </div>
+                <div class="col-4 p-1">
+                  <div class="range-option" onclick="SelectedRange('last15days', this)">Last 15 Days</div>
+                </div>
+                <div class="col-4 p-1">
+                  <div class="range-option" onclick="SelectedRange('thisMonth', this)">This Month</div>
+                </div>
+                <div class="col-4 p-1">
+                  <div id="month" class="range-option" onclick="SelectedRange('month', this)">Last Month</div>
+                </div>
+                <div class="col-4 p-1">
+                  <div class="range-option" onclick="SelectedRange('6months', this)">Last 6 months</div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <div class="py-2 px-3 overflow-auto button_border selection-containers border: 1px solid #dfdfdf;"
+                id="course_progress_batches" style="display: none; max-height: 33vh;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="speedalbs_body_slide slide_6"> <!-- Student Performance-->
+      <div class="user_profile" style="height: 100%; background-color: #d1cbcb21;">
+        <div class="mx-3 pt-4 px-2 pb-1 d-flex align-items-center ">
+          <i class="bi bi-person-fill me-2" style="font-size:3.6vh;"></i>
+          <h6 class="user_name mb-0 fw-semibold text-dark" style="font-size:3.2vh;">-- --</h6>
+        </div>
+        <div class="row mt-4 mx-2">
+          <div class="col-8 pe-2">
+            <div class="row batch_select_sec shadow-sm px-2 mx-2" id="chapter_wise_filter"
+              style="display: none;  background-color: white;">
+              <h3 class="text-center m-0 py-1" id="report_heading"></h3>
+              <div id="filter_list" class="my-2"></div>
+              <div class="overflow-auto" style="height: auto; max-height: 72.2vh;">
+                <div class="row accordion" id="accordian_report" style="justify-content:space-around;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="row batch_select_sec shadow-sm mx-1 p-3">
+              <div class="col-12 px-1 mb-2">
+                <label class="form-label mb-1">Batches</label>
+                <select class="form-select" id="batch_list_perf" onchange="showSub()">
+                  <option>Choose Batch</option>
+                </select>
+              </div>
+              <div class="col-12 px-1" id="user_subject_list_sec" style="display: none;">
+                <label class="form-label mb-1">Subjects</label>
+                <select class="form-select" id="user_batches_sub" onchange="validateInfo('batch_performance')">
+                  <option value="">Choose Subject</option>
+                </select>
+              </div>
+            </div>
+            <div id="stud_perf_selection_btn_container" class="batch_select_sec shadow-sm m-1 mt-3 py-1 px-3"
+              style=" display: none;">
+              <div class="row flex-column" style="justify-content:space-around;">
+                <div class="col-12 my-1 py-1">
+                  <div class="px-3 py-2 shadow-sm stud_perf_selection_btn disabled_card" id="stud_perf_selection_btn_1"
+                    onclick="optionsBatchPerformanceData('GetBatchPerformanceOverview')" style="border-radius: 1vw;">
+                    <div class="row">
+                      <div class="col-8" style="align-content: center; font-size: 1rem;">Overview <br> Analysis</div>
+                      <div class="col-4"><img class="slide_image_Containers"
+                          src="https://static.virtubox.io/catalog/file/20260225-092029-k1ha-over-view.png" alt=""></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 my-1 py-1">
+                  <div class=" px-3 py-2 shadow-sm stud_perf_selection_btn disabled_card" id="stud_perf_selection_btn_2"
+                    onclick="optionsBatchPerformanceData('GetBatchPerformanceChapterWise')" style="border-radius: 1vw;">
+                    <div class="row">
+                      <div class="col-8" style="align-content: center; font-size: 1rem;">View Chapter <br> Wise Analysis
+                      </div>
+                      <div class="col-4"><img class="slide_image_Containers"
+                          src="https://static.virtubox.io/catalog/file/20260226-090337-dtmg-chapter.png" alt=""></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 my-1 py-2">
+                  <div class="px-3 py-2 shadow-sm stud_perf_selection_btn disabled_card" id="stud_perf_selection_btn_3"
+                    onclick="optionsBatchPerformanceData('GetBatchPerformanceStudentWise')" style="border-radius: 1vw;">
+                    <div class="row">
+                      <div class="col-8" style="align-content: center; font-size: 1rem;">View Student <br> Wise Analysis
+                      </div>
+                      <div class="col-4"><img class="slide_image_Containers"
+                          src="https://static.virtubox.io/catalog/file/20260226-090338-xyzr-student.png" alt=""></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="speedalbs_body_slide slide_7"> <!-- Scan to evaluate - slide : 1 -->
+      <div class="user_profile" style="height: 100%; background-color: #d1cbcb21;">
+        <div class="mx-3 pt-4 px-2 pb-1 d-flex align-items-center ">
+          <i class="bi bi-person-fill me-2" style="font-size:3.6vh;"></i>
+          <h6 class="user_name mb-0 fw-semibold text-dark" style="font-size:3.2vh;">-- --</h6>
+        </div>
+        <div class="row mt-4 mx-2">
+          <div class="col-8 pe-2">
+            <div class="batch_select_sec shadow-sm mx-2"
+              style="border-radius: 2vw; border: 1px solid #DEDEDE; display: none; background-color: #f9f9f9;"
+              id="batch_test_list">
+              <div class="row my-2" style="justify-content: space-around; border-radius: 2vw;">
+                <div class="col-5">Test Name</div>
+                <div class="col-3 text-end">Scan OMR</div>
+              </div>
+              <div id="test_list" class="m-4 mt-0 overflow-auto"
+                style="border: 1px solid #DEDEDE; border-radius: 2vw; max-height: 76vh; background-color: white;"></div>
+            </div>
+          </div>
+          <div class="col-4 px-2">
+            <div class="row batch_select_sec shadow-sm mx-1 p-3">
+              <div class="col-12 px-1">
+                <label class="form-label mb-1">Batches</label>
+                <select class="form-select" id="batch_list_evaluate"
+                  onchange="validateInfo('batch_test_list')"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="speedalbs_body_slide slide_8"> <!-- Scan to evaluate - slide : 2 -->
+      <div class="user_profile" style="height: 100%; background-color: #d1cbcb21;">
+        <div class="mx-3 pt-4 px-2 pb-1 d-flex align-items-center ">
+          <button class="btn rounded-circle d-flex align-items-center justify-content-center mx-2 my-1"
+            onclick="backToTestList();" style="width: 6vh; height: 6vh; background: #6D3088;">
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="white" stroke-width="3" fill="none">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <i class="bi bi-person-fill me-2" style="font-size:3.6vh;"></i>
+          <h6 class="user_name mb-0 fw-semibold text-dark" style="font-size:3.2vh;">-- --</h6>
+        </div>
+        <div class="row mt-4 mx-2">
+          <div class="col-5 px-2">
+            <div class="row batch_select_sec shadow-sm m-1 p-1">
+              <div class="col-12 pb-2">
+                <div style="font-size: 1vw; color: gray;">Batch</div>
+                <h5 class="selected_test_content m-0" id="selected_Batch_id"></h5>
+              </div>
+              <div class="col-12 pb-1" id="user_subj_sec" style="display: block;">
+                <div style="font-size: 1vw; color: gray;">Test</div>
+                <h5 class="selected_test_content m-0" id="selected_test_id"></h5>
+              </div>
+            </div>
+            <div class="" style="display: flex; flex-direction: column; border-radius: 1.5vh;">
+              <div class="shadow-sm w-100"
+                style="height: 50.8vh; background-image: url('https://static.virtubox.io/catalog/file/20260519-115403-svh1-image-preview.jpg');  background-repeat: no-repeat; background-size: contain; background-position: center;">
+                <div class="d-flex mx-3 py-1 my-1" style="justify-content:flex-end;">
+                  <button id="delete_all_omr_images" class="btn btn-sm btn-danger shadow-sm button_border"
+                    style="color:white; display:none; font-size:1vw;" onclick="deleteAllOmrImg()">Delete All</button>
+                </div>
+                <div class="overflow-auto mb-3" style="max-height:40vh;">
+                  <canvas id="captured_omr_sheet" width="213.33" height="120" style="display:none;"></canvas>
+                  <div id="omr_preview_gallery"
+                    class="gallery px-2 d-flex flex-wrap justify-content-center align-content-start"></div>
+                </div>
+              </div>
+              <div class="omr_sheet_btns col-6 button_border px-2 py-2 shadow-sm text-center upload_omr_btn"
+                id="upload_omr_btn" style="color: white; background-color: #6D3088;" onclick="CallOmrConfig()">Upload To
+                Server</div>
+            </div>
+          </div>
+          <div class="col-7 pe-2">
+            <div class="row mx-2">
+              <div class="col-12" style=" display: flex; flex-direction: column; height: 79.3vh;">
+                <div
+                  class="position-relative d-flex justify-content-center align-items-center w-100 bg-light rounded-4 shadow-sm overflow-hidden p-2">
+                  <video id="video" class="w-100 rounded-4 object-fit-cover" autoplay playsinline muted
+                    poster="https://static.virtubox.io/catalog/file/20260224-094551-unua-omr_img_1.jpg"></video>
+                  <span class="position-absolute start-50 translate-middle-x mt-3 px-2 py-2 rounded bg-dark text-white"
+                    style="font-size:1vw; margin-top: 58% !important;"><i class="bi bi-arrow-right"></i>Place OMR Inside
+                    Green Box Horizontally</span>
+                  <div class="omr-guide-frame"></div>
+                  <div id="omr_scanning_button"
+                    class="position-absolute top-50 start-50 translate-middle px-4 py-3 rounded-4 text-white fw-semibold shadow bg-dark bg-opacity-75 text-center"
+                    style="cursor:pointer;" onclick="startCamera()"> <i class="bi bi-camera-fill me-2"></i>Touch To
+                    Start Scanning
+                  </div>
+                </div>
+                <div class="shadow-sm col-4 px-3 py-2 text-center omr_sheet_btns button_border" id="capture_omr_btn"
+                  onclick="captureOmrImage()"
+                  style="border-color: #6D3088; background-color: rgba(0, 128, 0, 0.736); display: none; margin-left: 67%;">
+                  Capture OMR</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <script src="virtubox://script?slug=speedlabs-js&mimetype=text/javascript"></script>
+  <script src="virtubox://script?slug=virtubox-js&mimetype=text/javascript"></script>
+  <script>
+    let user_id = '';
+    let user_name = '';
+    let subject_wise_batch_per_obj = {};
+    let isValidUser = false;
+    let batch_sub_obj = {};
+    let modifiedBatchSubjectObj = {};
+    let SelectedInstituteTestId = '';
+    let SelectedBatchForTestsId = '';
+    let PdfFileChecksum = '';
+    let FileUUID = '';
+    let fileBlob = '';
+    let capturedBuffers = [];
+    let stream = null;
+    let deleteIndex = null;
+    let deleteButtonRef = null;
+    let deleteType = null;
+    let parsedData;
+    let currentBatchIndex = 0;
+    let currentSelectedTab = '';
+    let isRefreshing = false;
+    let refreshPromise = null;
+    let requestQueue = [];
+    let pendingRefreshResolve = null;
+    let pendingRefreshReject = null;
+    let preview = document.getElementById("omr_preview_gallery");
+    let canvas = document.getElementById("captured_omr_sheet");
+    let video = document.getElementById("video");
+    let Student_perf_selcetd_tab = '';
+    let lastRfidCode = ''
+    const ProgressThresholds = [20, 40, 60, 80, 100];
+    const ProgressColors = ["#B03E3E", "#FF835C", "#FFBF44", "#8BC32E", "#16A085"];
+
+    let subject_icon = {
+      "Physics": 'https://static.virtubox.io/catalog/file/20260319-094010-jbp8-physics.png',
+      "Maths": 'https://static.virtubox.io/catalog/file/20260320-052136-fvys-maths.png',
+      "Chemistry": 'https://static.virtubox.io/catalog/file/20260320-052137-6tww-chem.png',
+      "Biology": 'https://static.virtubox.io/catalog/file/20260320-052137-ad23-bio.png',
+    }
+    let user_gender_info = {
+      '1': {
+        'title': "Male",
+        'icon_url': "https://static.virtubox.io/catalog/file/20260320-052143-9k86-male.png"
+      },
+      '2': {
+        'title': "Female",
+        'icon_url': "https://static.virtubox.io/catalog/file/20260320-052141-hufz-female.png"
+      }
+    }
+    let cityInfo = {};
+    let STATUS_MAP = {
+      "Ahead of Schedule": {
+        cls: "status-ahead",
+        iconBg: "rgba(16,185,129,0.12)",
+        iconColor: "#10b981"
+      },
+      "On Schedule": {
+        cls: "status-onschedule",
+        iconBg: "rgba(59,130,246,0.12)",
+        iconColor: "#3b82f6"
+      },
+      "Behind Schedule": {
+        cls: "status-behindschedule",
+        iconBg: "rgba(59,130,246,0.12)",
+        iconColor: "#3b82f6"
+      }
+    };
+
+    let STAT_COLORS = {
+      Chapters: "#6366f1",
+      Lectures: "#8b5cf6",
+      Assignments: "#f59e0b",
+      Assessments: "#ec4899"
+    };
+
+    let loginType = "";
+    let loginTime = [];
+    let Stages = [];
+    let user_details = {};
+
+    window.addEventListener('load', () => {
+      console.log("1: window load");
+      stopCamera();
+      checkIsUserLoginInfo("AccessToken");
+      kioskData();
+    });
+
+    function showCourseProgressAppyBtn() {
+      console.log("2: showCourseProgressAppyBtn");
+      let startDate = document.getElementById("course_progress_from_date").value;
+      let endDate = document.getElementById("course_progress_to_date").value;
+      if (!startDate || !endDate) {
+        return;
+      } else {
+        document.getElementById('course_progress_apply_btn').style.display = 'block';
+      }
+    }
+
+    function choose_opt_login() {
+      console.log("3: choose_opt_login function called");
+      change_slide('slide_1', 'slide_2');
+    }
+
+    function selectRFIDLogIn() {
+      console.log("4: selectRFIDLogin");
+      loginType = "RFID";
+      change_slide('slide_2', 'slide_3');
+      Qr_scan();
+    }
+
+    function selectQRLogIn() {
+      console.log("4: selectRFIDLogin");
+      loginType = "QR Code";
+      change_slide('slide_2', 'slide_4');
+      Qr_scan();
+    }
+
+    function Qr_scan() {
+      console.log("5: Qr_scan function called");
+      if (!user_details.AccessToken) {
+        registerEventListener("text_input", "text_input_register", { decode: false });
+      } else {
+        console.log('user_details', user_details);
+        return;
+      }
+    }
+
+    function validateInfo(selected_tag) {
+      console.log("8: validateInfo");
+      stud_perf_selection_btn_1.classList.add("disabled_card");
+      stud_perf_selection_btn_2.classList.add("disabled_card");
+      stud_perf_selection_btn_3.classList.add("disabled_card");
+      resetContainer();
+      document.getElementById('chapter_wise_filter').style.display = 'none';
+      if (selected_tag === 'batch_test_list') {
+        let batchId = document.getElementById("batch_list_evaluate").value;
+        if (!batchId) {
+          document.getElementById("batch_test_list").style.display = 'none';
+          return;
+        }
+        showLoader();
+        getTestInfo(user_details.AccessToken, batchId, ActivityTypeIdsEnum.INSTITUTE_TEST, ApiGetTestsForBatch);
+      }
+
+      if (selected_tag === 'batch_performance') {
+        console.log("batch_performance called");
+        let selected_batch = document.getElementById('batch_list_perf');
+        let selected_subject = document.getElementById('user_batches_sub');
+        if (!selected_batch.value) {
+          selected_batch.classList.add("error_border");
+          return false;
+        }
+        if (!selected_subject.value) {
+          selected_subject.classList.add("error_border");
+          return false;
+        }
+        selected_batch.classList.remove("error_border");
+        selected_subject.classList.remove("error_border");
+        Student_perf_selcetd_tab = '';
+        console.log("stud_perf_selection_btn_container");
+        document.getElementById('stud_perf_selection_btn_container').style.display = "block";
+      }
+      if (selected_tag === 'course_progress') {
+        console.log("course_progress");
+        let startDate = document.getElementById("course_progress_from_date").value;
+        let endDate = document.getElementById("course_progress_to_date").value;
+        console.log(startDate);
+        console.log(endDate);
+        if (!startDate || !endDate) {
+          toastr.err("Fill all required info");
+          return;
+        }
+        showLoader();
+        getCourseProgressInfo(user_details.AccessToken, user_details.AffiliationId, startDate, endDate, ApiGeCourseProgressInfo);
+      }
+    }
+
+    function optionsBatchPerformanceData(el) {
+      stopCamera();
+      console.log("9: optionsBatchPerformanceData");
+      let selected_batch = document.getElementById('batch_list_perf');
+      let selected_subject = document.getElementById('user_batches_sub');
+      let view_overview = document.getElementById('stud_perf_selection_btn_1');
+      let view_chapter_wise_card = document.getElementById('stud_perf_selection_btn_2');
+      let view_student_wise_card = document.getElementById('stud_perf_selection_btn_3');
+      if (!el) {
+        console.log("optionsBatchPerformanceData function called non data found", el.value);
+        return;
+      } else if (el === 'GetBatchPerformanceStudentWise') {
+        if (Student_perf_selcetd_tab === 'GetBatchPerformanceStudentWise') {
+          return;
+        }
+        Student_perf_selcetd_tab = 'GetBatchPerformanceStudentWise';   // ← fixed
+        console.log(el);
+        view_student_wise_card.classList.remove("disabled_card");
+        view_overview.classList.add("disabled_card");
+        view_chapter_wise_card.classList.add("disabled_card");
+        showLoader();
+        getBatchPerformanceStudentWise(user_details.AccessToken, selected_batch.value, selected_subject.value, ApiGetBatchPerformanceStudentwise);
+      } else if (el === 'GetBatchPerformanceOverview') {
+        if (Student_perf_selcetd_tab === 'GetBatchPerformanceOverview') {
+          return;
+        }
+        Student_perf_selcetd_tab = 'GetBatchPerformanceOverview';      // ← fixed
+        console.log(el);
+        view_student_wise_card.classList.add("disabled_card");
+        view_overview.classList.remove("disabled_card");
+        view_chapter_wise_card.classList.add("disabled_card");
+        showLoader();
+        GetBatchPerformanceOverview(user_details.AccessToken, selected_batch.value, selected_subject.value, ApiGetBatchPerformanceOverview);
+      } else if (el === 'GetBatchPerformanceChapterWise') {
+        if (Student_perf_selcetd_tab === 'GetBatchPerformanceChapterWise') {
+          return;
+        }
+        Student_perf_selcetd_tab = 'GetBatchPerformanceChapterWise';   // ← fixed
+        console.log(el);
+        view_overview.classList.add("disabled_card");
+        view_chapter_wise_card.classList.remove("disabled_card");
+        view_student_wise_card.classList.add("disabled_card");
+        showLoader();
+        GetBatchPerformanceChapterWise(user_details.AccessToken, selected_batch.value, selected_subject.value, ApiGetBatchPerformanceChapterwise);
+      }
+    }
+
+    function show_user_profile(el) {
+      console.log("show_user_profile called");
+      if (isValidUser) {
+        stopCamera();
+        selectFooter(el);
+        el.classList.add('selected_footer_icon');
+        CloseStudentPerformance();
+        closeCourseProgress();
+        document.getElementById('batch_test_list').style.display = 'none';
+        slide_change('slide_5');
+        currentSelectedTab = 'show_user_profile';
+      } else {
+        slide_change('slide_2');
+      }
+    }
+
+    function show_course_progress(el) {
+      if (currentSelectedTab === 'show_course_progress') {
+        return;
+      } else {
+        stopCamera();
+        console.log("39:show_course_progress")
+        if (isValidUser) {
+          slide_change('slide_9');
+          selectFooter(el);
+          el.classList.add('selected_footer_icon');
+          CloseStudentPerformance();
+          defaultCallCourseProgress();
+          currentSelectedTab = 'show_course_progress';
+        } else {
+          slide_change('slide_2');
+        }
+      }
+    }
+
+    function show_student_performance(el) {
+      if (currentSelectedTab === 'show_student_performance') {
+        return;
+      } else {
+        stopCamera();
+        if (isValidUser) {
+          Student_perf_selcetd_tab = '';
+          console.log("40: show_student_performance function called");
+          selectFooter(el);
+          el.classList.add('selected_footer_icon');
+          document.getElementById('batch_test_list').style.display = 'none';
+          slide_change('slide_6');
+          show_perf_slide();
+          batch_sub_obj = user_details.batches || [];
+          renderBatchCards('accordian_report', batch_sub_obj, 'large');
+          currentSelectedTab = 'show_student_performance';
+        } else {
+          slide_change('slide_2');
+        }
+      }
+    }
+
+    function backToTestList() {
+      console.log("41: backToTestList");
+      resetOmrModule();
+      change_slide('slide_8', 'slide_7');
+    }
+
+    function show_scan_to_evaluate(el) {
+      console.log("42: show_scan_to_evaluate function called");
+      if (currentSelectedTab === 'show_scan_to_evaluate') {
+        return;
+      } else {
+        if (isValidUser) {
+          CloseStudentPerformance();
+          selectFooter(el);
+          el.classList.add('selected_footer_icon');
+          closeCourseProgress()
+          slide_change('slide_7');
+          modifiedBatchSubjectObj = structuredBatchObj(batch_sub_obj);
+          showBatchesOption('batch_list_evaluate');
+          setDefaultScanToEvaluate();
+          currentSelectedTab = 'show_scan_to_evaluate';
+        } else {
+          slide_change('slide_2');
+        }
+      }
+    }
+
+    function selectFooter(el) {
+      document.querySelectorAll(".footer_icon").forEach(btn => {
+        btn.classList.remove("selected_footer_icon");
+      });
+      if (!el) return;
+      el.classList.add("selected_footer_icon");
+    }
+
+    function check_access_token() {
+      console.log("43: check_access_token function called");
+      if (user_details.AccessToken == '' || user_details.AccessToken == null || user_details.AccessToken == 'undefined') {
+        change_slide('slide_1', 'slide_2');
+        return false;
+      } else {
+        return true;
+      }
+      return false;
+    }
+
+    function change_slide(display_hide, display_show) {
+      console.log("46: change_slide function called");
+      $(`.${display_hide}`).hide();
+      $(`.${display_show}`).show();
+    }
+
+    function slide_change(slideClass) {
+      console.log("47: slide_change function called");
+      document.querySelectorAll('.speedalbs_body_slide').forEach(slide => slide.style.display = "none");
+      let target = document.querySelector('.' + slideClass);
+      if (target) target.style.display = "block";
+    }
+
+    function showLoader() {
+      console.log("77: show loader function called");
+      document.getElementById("speedlabs_api_loading_bar").classList.remove("hide");
+    }
+
+    function hideLoader() {
+      console.log("78: Hide loader function called");
+      document.getElementById("speedlabs_api_loading_bar").classList.add("hide");
+    }
+
+    document.addEventListener("click", function (e) {
+      if (e.target.classList.contains("perf_filters")) {
+        document.querySelectorAll(".perf_filters").forEach(el => el.classList.remove("selected_filter"));
+        e.target.classList.add("selected_filter");
+        let filterKey = e.target.dataset.filterKey;
+        showLoader();
+        setTimeout(() => {
+          if (document.getElementById('chapter_wise_filter').style.display === 'block') {
+            applyChapterFilter(filterKey);
+          } else {
+            applyFilter(filterKey);
+          }
+        }, 0);
+        return;
+      }
+      if (e.target.closest(".scan-btn")) {
+        let scanBtn = e.target.closest(".scan-btn");
+        showLoader();
+        uploadOmrSheet(scanBtn.dataset.testid);
+        return;
+      }
+    });
+
+    function SelectedRange(type, el) {
+      let coursePeogressBtn = document.getElementById('course-progress');
+      coursePeogressBtn.classList.add("d-none");
+      let today = new Date();
+      let startDate = new Date();
+      if (type === 'yesterday') {
+        startDate.setDate(today.getDate() - 1);
+        today = new Date();
+      }
+      if (type === 'week') {
+        const day = today.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        startDate.setDate(today.getDate() + diff);
+      } else if (type === 'last15days') {
+        startDate.setDate(today.getDate() - 15);
+        today = new Date();
+      }
+      else if (type === 'thisMonth') {
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        today = new Date();
+      } else if (type === 'month') {
+        startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        today = new Date(today.getFullYear(), today.getMonth(), 0);
+      } else if (type === '6months') {
+        startDate.setMonth(today.getMonth() - 6);
+        today = new Date();
+      }
+      const formattedStart = formatDate(startDate);
+      const formattedEnd = formatDate(today);
+      document.getElementById("course_progress_from_date").value = formattedStart;
+      document.getElementById("course_progress_to_date").value = formattedEnd;
+      console.log("Range Selected:", type, formattedStart, formattedEnd);
+      document.querySelectorAll(".range-option").forEach(item => {
+        item.classList.remove("selected_filter");
+      });
+      el.classList.add("selected_filter");
+      validateInfo('course_progress');
+      return {
+        startDate: formattedStart,
+        endDate: formattedEnd
+      };
+    }
+
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function resetContainer() {
+      console.log("80: resetContainer");
+      setConatinerValue('filter_list', '');
+      setConatinerValue('accordian_report', '');
+    }
+
+    function setConatinerValue(value, data) {
+      console.log("81: setConatinerValue")
+      document.getElementById(value).innerHTML = data;
+    }
+
+    function UserLogOut() {
+      console.log("loginTime array:", loginTime);
+      let totalActivityTime = 0;
+      if (Array.isArray(loginTime) && loginTime.length > 0) {
+        let loginTimeValue = new Date(loginTime[0]);
+        let logoutTime = new Date();
+        if (!isNaN(loginTimeValue) && !isNaN(logoutTime)) { totalActivityTime = ((logoutTime - loginTimeValue) / 60000).toFixed(2); }
+      }
+      sendScriptResponse("Log Out", API_Status, { TotalActivityTime: totalActivityTime });
+      console.log("TotalActivityTime:", totalActivityTime, "UserLogOut function called");
+      selectFooter();
+      user_details = {};
+      isValidUser = false;
+      updateUserLoginInfo(local_storage_key, {});
+      slide_change('slide_1');
+    }
+  </script>
+</body>
+
+</html>
